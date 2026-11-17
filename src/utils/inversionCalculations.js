@@ -1,0 +1,121 @@
+/**
+ * @fileoverview Pure calculations for room ventilation CADR, ACH, thermal inversion danger, and solar airing windows.
+ * @module inversionCalculations
+ */
+
+/**
+ * Calculates the minutes required for one complete air exchange in a room based on CADR.
+ * @param {number} roomSizeSqFt - Room floor surface area in square feet.
+ * @param {number} cadrCfm - Clean Air Delivery Rate in Cubic Feet per Minute.
+ * @param {number} [ceilingHeightFt=8.5] - Ceiling height in feet (defaults to 8.5ft).
+ * @returns {number} Estimated minutes per complete air turnover.
+ */
+export function calculateTurnoverMinutes(roomSizeSqFt, cadrCfm, ceilingHeightFt = 8.5) {
+  const sqFt = Math.max(50, Number(roomSizeSqFt) || 300);
+  const cadr = Math.max(50, Number(cadrCfm) || 200);
+  const roomVolumeCuFt = sqFt * ceilingHeightFt;
+  return Math.max(3, Math.round(roomVolumeCuFt / cadr));
+}
+
+/**
+ * Computes Air Changes per Hour (ACH) for clinical and indoor air quality standards.
+ * @param {number} roomSizeSqFt - Room floor surface area in square feet.
+ * @param {number} cadrCfm - Clean Air Delivery Rate in Cubic Feet per Minute.
+ * @param {number} [ceilingHeightFt=8.5] - Ceiling height in feet.
+ * @returns {number} Decimal Air Changes per Hour (e.g., 5.2 ACH).
+ */
+export function calculateAirChangesPerHour(roomSizeSqFt, cadrCfm, ceilingHeightFt = 8.5) {
+  const turnoverMinutes = calculateTurnoverMinutes(roomSizeSqFt, cadrCfm, ceilingHeightFt);
+  return Number((60 / turnoverMinutes).toFixed(1));
+}
+
+/**
+ * @typedef {Object} InversionDangerRating
+ * @property {'Critical Trap' | 'High Inversion' | 'Low Inversion'} level - Inversion risk level
+ * @property {'rose' | 'amber' | 'emerald'} color - Visual badge color identifier
+ * @property {string} desc - Meteorological explanation of atmospheric stagnation
+ */
+
+/**
+ * Evaluates winter boundary layer thermal inversion danger based on microclimate variables.
+ * @param {Object} params - Weather inputs.
+ * @param {number} [params.temp=15] - Ambient surface temperature in Celsius.
+ * @param {number} [params.windSpeed=3] - Surface wind speed in km/h.
+ * @param {number} [params.humidity=75] - Relative humidity percentage (0 - 100).
+ * @returns {InversionDangerRating} Computed inversion stagnation rating.
+ */
+export function calculateInversionDanger({ temp = 15, windSpeed = 3, humidity = 75 } = {}) {
+  let score = 0;
+  if (windSpeed < 3.0) score += 40;
+  else if (windSpeed < 6.0) score += 20;
+
+  if (humidity > 80) score += 30;
+  else if (humidity > 60) score += 15;
+
+  if (temp < 15) score += 30;
+  else if (temp < 22) score += 15;
+
+  if (score >= 80) {
+    return {
+      level: 'Critical Trap',
+      color: 'rose',
+      desc: 'Severe cold stagnant air boundary layer traps ground pollutants.'
+    };
+  }
+  if (score >= 50) {
+    return {
+      level: 'High Inversion',
+      color: 'amber',
+      desc: 'Moderate cold air lid preventing vertical dispersion.'
+    };
+  }
+  return {
+    level: 'Low Inversion',
+    color: 'emerald',
+    desc: 'Active wind or solar thermal currents assisting dispersion.'
+  };
+}
+
+/**
+ * @typedef {Object} SafeAiringCountdown
+ * @property {string} text - Human-readable countdown or active window label
+ * @property {boolean} isNow - Whether current time is within the midday ventilation window (13:00 - 15:30)
+ * @property {number} hoursUntil - Hours remaining until next solar window
+ * @property {number} minsUntil - Minutes remaining until next solar window
+ */
+
+/**
+ * Calculates countdown status to the optimal midday solar dispersion window (1:00 PM - 3:30 PM).
+ * @param {Date} [now=new Date()] - Reference timestamp.
+ * @returns {SafeAiringCountdown} Computed window timing information.
+ */
+export function calculateAiringCountdown(now = new Date()) {
+  const currentHour = now.getHours();
+  const currentMin = now.getMinutes();
+
+  if (currentHour >= 13 && (currentHour < 15 || (currentHour === 15 && currentMin <= 30))) {
+    return {
+      text: 'Active Safe Window',
+      isNow: true,
+      hoursUntil: 0,
+      minsUntil: 0
+    };
+  }
+
+  let hoursUntil = 13 - currentHour;
+  let minsUntil = 0 - currentMin;
+  if (minsUntil < 0) {
+    minsUntil += 60;
+    hoursUntil -= 1;
+  }
+  if (hoursUntil < 0) {
+    hoursUntil += 24;
+  }
+
+  return {
+    text: `Opens in ${hoursUntil}h ${minsUntil}m`,
+    isNow: false,
+    hoursUntil,
+    minsUntil
+  };
+}

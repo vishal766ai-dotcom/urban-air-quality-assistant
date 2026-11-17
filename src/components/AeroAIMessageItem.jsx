@@ -1,10 +1,15 @@
 import React from 'react';
 import { Bot, User, Volume2 } from 'lucide-react';
 import { MarkdownMessage } from './MarkdownMessage';
+import { StructuredActionCards } from './StructuredActionCards';
 
 /**
- * Single chat message row in AeroAI.
- * @param {{ msg: { id: string, role: string, content: string, source?: string }, speechSupported: boolean, onSpeak: (text: string) => void }} props
+ * Single chat message row in AeroAI with Markdown and Structured Action Cards.
+ * @param {{
+ *   msg: { id: string, role: string, content: string, source?: string, actionCards?: any[] },
+ *   speechSupported: boolean,
+ *   onSpeak: (text: string) => void
+ * }} props
  */
 export function AeroAIMessageItem({ msg, speechSupported, onSpeak }) {
   const isUser = msg.role === 'user';
@@ -26,6 +31,10 @@ export function AeroAIMessageItem({ msg, speechSupported, onSpeak }) {
         <div className="text-xs sm:text-sm">
           <MarkdownMessage content={msg.content} />
         </div>
+
+        {msg.actionCards && msg.actionCards.length > 0 && (
+          <StructuredActionCards cards={msg.actionCards} />
+        )}
 
         {!isUser && (
           <div className="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">

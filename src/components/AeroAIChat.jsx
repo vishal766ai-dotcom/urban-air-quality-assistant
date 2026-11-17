@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bot } from 'lucide-react';
 import { askGenAiAssistant } from '../services/geminiService';
 import { useSpeech } from '../hooks/useSpeech';
+import { exportPersonalizedActionPlan } from '../utils/planExporter';
 import { AeroAIMessageItem } from './AeroAIMessageItem';
 import { SmartPromptBar } from './SmartPromptBar';
 import { ChatInputBar } from './ChatInputBar';
@@ -20,8 +21,27 @@ export function AeroAIChat({ city, profile, apiKey }) {
 
 I am actively tracking ambient conditions in **${city.name}** (Current AQI: **${city.currentAQI}** - ${city.category}) with personalized defense protocols calibrated for **${profile.label}**.
 
-How can I help you today? You can choose one of the smart prompt cards below, speak with the mic, or type any question!`,
-      source: 'AeroGuardian GenAI Engine'
+How can I help you today? You can choose one of the smart prompt cards below, speak with the mic, or generate a 1-click personalized daily action plan!`,
+      source: 'AeroGuardian GenAI Engine',
+      actionCards: [
+        {
+          category: 'Immediate Indoor Action',
+          action: city.currentAQI > 200 
+            ? 'Seal windows and keep DIY Corsi-Rosenthal / HEPA filtration running.' 
+            : 'Prepare for 1:00 PM – 3:30 PM safe airing window.',
+          status: city.currentAQI > 200 ? 'Critical' : 'Safe Window'
+        },
+        {
+          category: 'Commute Shift Protocol',
+          action: 'Switch to electric metro or carpool with cabin recirculate enabled.',
+          status: '-80% Soot'
+        },
+        {
+          category: 'Mask & Filter Spec',
+          action: 'Use certified NIOSH N95 / KF94 respirator with snug facial seal.',
+          status: 'Mandatory'
+        }
+      ]
     }
   ]);
 
@@ -56,7 +76,8 @@ How can I help you today? You can choose one of the smart prompt cards below, sp
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: response.text,
-        source: response.source
+        source: response.source,
+        actionCards: response.actionCards
       };
       setMessages(prev => [...prev, aiMsg]);
     } catch {
@@ -94,7 +115,7 @@ How can I help you today? You can choose one of the smart prompt cards below, sp
     ]);
   };
 
-  const handleDownloadPlan = () => {
+  const handleDownloadChat = () => {
     const content = messages
       .map(m => `--- ${m.role.toUpperCase()} (${m.source || 'User'}) ---\n${m.content}\n`)
       .join('\n');
@@ -102,7 +123,7 @@ How can I help you today? You can choose one of the smart prompt cards below, sp
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `AeroGuardian_Smog_Plan_${city.name.replace(/\s+/g, '_')}.md`;
+    a.download = `AeroGuardian_Chat_${city.name.replace(/\s+/g, '_')}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -116,7 +137,8 @@ How can I help you today? You can choose one of the smart prompt cards below, sp
         apiKey={apiKey}
         isSpeaking={isSpeaking}
         onStopSpeaking={stopSpeaking}
-        onDownloadPlan={handleDownloadPlan}
+        onGeneratePlan={() => exportPersonalizedActionPlan(city, profile)}
+        onDownloadPlan={handleDownloadChat}
         onClearHistory={handleClearHistory}
       />
 

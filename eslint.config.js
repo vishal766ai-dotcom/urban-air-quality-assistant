@@ -36,6 +36,7 @@ export default [
         btoa: 'readonly',
         performance: 'readonly',
         SpeechSynthesisUtterance: 'readonly',
+        AbortController: 'readonly',
         describe: 'readonly',
         it: 'readonly',
         expect: 'readonly',

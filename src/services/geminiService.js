@@ -3,7 +3,7 @@
  * Supports direct Google Gemini API call with intelligent fallback rule-engine
  */
 
-import { synthesizeIntelligentResponse } from './ruleEngineService';
+import { synthesizeIntelligentResponse, generateActionCards } from './ruleEngineService';
 
 const getFallbackKey = () => (typeof atob !== 'undefined' ? atob('QVEuQWI4Uk42SWVzSy0wei1XalhXblR4SXAzVU9LRlM0TU5YdUpVMDN1Nkt4QU4tWlpFRXc=') : '');
 export const PERMANENT_API_KEY = (import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) || getFallbackKey();
@@ -25,6 +25,7 @@ export async function askGenAiAssistant({
   conversationHistory = []
 }) {
   const effectiveKey = (apiKey && apiKey.trim().length > 10) ? apiKey.trim() : PERMANENT_API_KEY;
+  const cards = generateActionCards(userMessage, cityData, lifestyleProfile);
 
   if (effectiveKey && effectiveKey.trim().length > 10) {
     try {
@@ -75,21 +76,22 @@ ${userMessage}`
         if (text) {
           return {
             source: 'Gemini 1.5 Flash (Live API)',
-            text
+            text,
+            actionCards: cards
           };
         }
       }
     } catch {
-      // Gracefully fall back to local rule engine without throwing or logging
+      // Gracefully fall back to local rule engine
     }
   }
 
-  // Built-in intelligent conversational synthesis engine (Immediate zero-key fallback)
   return {
     source: 'AeroGuardian GenAI Engine (Built-in Knowledge Base)',
-    text: synthesizeIntelligentResponse(userMessage, cityData, lifestyleProfile)
+    text: synthesizeIntelligentResponse(userMessage, cityData, lifestyleProfile),
+    actionCards: cards
   };
 }
 
-export { synthesizeIntelligentResponse };
+export { synthesizeIntelligentResponse, generateActionCards };
 export default askGenAiAssistant;

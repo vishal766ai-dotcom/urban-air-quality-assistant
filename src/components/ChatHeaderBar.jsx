@@ -1,8 +1,8 @@
 import React from 'react';
-import { Bot, VolumeX, Download, Trash2 } from 'lucide-react';
+import { Bot, VolumeX, Download, Trash2, FileText } from 'lucide-react';
 
 /**
- * Chat Header Bar with status badge, mute readout, download plan, and clear history.
+ * Chat Header Bar with status badge, mute readout, 1-click plan generation, download plan, and clear history.
  * @param {{
  *   cityName: string,
  *   currentAQI: number,
@@ -10,6 +10,7 @@ import { Bot, VolumeX, Download, Trash2 } from 'lucide-react';
  *   apiKey?: string,
  *   isSpeaking: boolean,
  *   onStopSpeaking: () => void,
+ *   onGeneratePlan: () => void,
  *   onDownloadPlan: () => void,
  *   onClearHistory: () => void
  * }} props
@@ -21,6 +22,7 @@ export function ChatHeaderBar({
   apiKey,
   isSpeaking,
   onStopSpeaking,
+  onGeneratePlan,
   onDownloadPlan,
   onClearHistory
 }) {
@@ -46,6 +48,17 @@ export function ChatHeaderBar({
       </div>
 
       <div className="flex items-center gap-2">
+        {/* 1-Click Action Plan Export */}
+        <button
+          onClick={onGeneratePlan}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold shadow-md shadow-emerald-700/30 transition transform active:scale-95"
+          title="Generate Personalized Daily Action Plan (PDF/Text Export)"
+        >
+          <FileText className="w-3.5 h-3.5" />
+          <span className="hidden md:inline">Generate Daily Plan</span>
+          <span className="md:hidden">Plan</span>
+        </button>
+
         {isSpeaking && (
           <button
             onClick={onStopSpeaking}
@@ -61,8 +74,8 @@ export function ChatHeaderBar({
         <button
           onClick={onDownloadPlan}
           className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs transition"
-          title="Download Plan as Markdown"
-          aria-label="Download Plan"
+          title="Download Chat as Markdown"
+          aria-label="Download Chat"
         >
           <Download className="w-4 h-4" />
         </button>

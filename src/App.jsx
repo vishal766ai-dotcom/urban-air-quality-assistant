@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { LayoutDashboard, Bot, Calendar, Wrench, BarChart3, Users, Wind } from 'lucide-react';
-import { CITIES_DATA } from './data/airQualityData';
-import { LIFESTYLE_PROFILES } from './data/airQualityData';
+import React, { useState, useEffect, useMemo } from 'react';
+import { LayoutDashboard, Bot, Calendar, Wrench, BarChart3, Users } from 'lucide-react';
+import { CITIES_DATA, LIFESTYLE_PROFILES } from './data/airQualityData';
+import { getAqiCategory } from './utils/calculations';
+import { fetchLiveAirQuality } from './services/openMeteoService';
 import { useLocalStorage } from './hooks/useLocalStorage';
 
 import { Navbar } from './components/Navbar';
 import { WarningBanner } from './components/WarningBanner';
+import { AqiScenarioSimulator } from './components/AqiScenarioSimulator';
 import { SmogRadar } from './components/SmogRadar';
 import { AeroAIChat } from './components/AeroAIChat';
 import { RoutinesTab } from './components/RoutinesTab';
@@ -16,6 +18,7 @@ import { EvaluationModal } from './components/EvaluationModal';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { CustomLocationModal } from './components/CustomLocationModal';
 import { SymptomTriageModal } from './components/SymptomTriageModal';
+import { AppFooter } from './components/AppFooter';
 
 const getFallbackKey = () => (typeof atob !== 'undefined' ? atob('QVEuQWI4Uk42SWVzSy0wei1XalhXblR4SXAzVU9LRlM0TU5YdUpVMDN1Nkt4QU4tWlpFRXc=') : '');
 export const PERMANENT_API_KEY = (import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) || getFallbackKey();
@@ -27,6 +30,9 @@ export function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   
   const [apiKey, setApiKey] = useLocalStorage('aeroguardian_gemini_key', PERMANENT_API_KEY);
+  const [isLiveSynced, setIsLiveSynced] = useState(false);
+  const [simulatedAqi, setSimulatedAqi] = useState(null);
+
   const [evalModalOpen, setEvalModalOpen] = useState(false);
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
   const [customLocationModalOpen, setCustomLocationModalOpen] = useState(false);
@@ -35,9 +41,52 @@ export function App() {
   const [highContrast, setHighContrast] = useState(false);
   const [largeFont, setLargeFont] = useState(false);
 
+  const cityId = selectedCity?.id;
+  const lat = selectedCity?.coordinates?.lat;
+  const lon = selectedCity?.coordinates?.lon;
+
+  // Automatically attempt to ground in live Open-Meteo Air Quality API
+  useEffect(() => {
+    let active = true;
+
+    if (typeof lat === 'number' && typeof lon === 'number') {
+      fetchLiveAirQuality(lat, lon).then((liveData) => {
+        if (active && liveData) {
+          setIsLiveSynced(true);
+          setSelectedCity(prev => ({
+            ...prev,
+            currentAQI: liveData.currentAQI,
+            category: getAqiCategory(liveData.currentAQI).label,
+            color: getAqiCategory(liveData.currentAQI).color,
+            pollutants: { ...prev.pollutants, ...liveData.pollutants },
+            hourlyForecast: liveData.hourlyForecast || prev.hourlyForecast
+          }));
+        }
+      });
+    }
+    return () => { active = false; };
+  }, [cityId, lat, lon]);
+
+  const displayCity = useMemo(() => {
+    if (simulatedAqi === null) return selectedCity;
+    const cat = getAqiCategory(simulatedAqi);
+    const approxPm25 = Number((simulatedAqi * 0.92).toFixed(1));
+    return {
+      ...selectedCity,
+      currentAQI: simulatedAqi,
+      category: cat.label,
+      color: cat.color,
+      pollutants: {
+        ...selectedCity.pollutants,
+        pm25: approxPm25
+      }
+    };
+  }, [selectedCity, simulatedAqi]);
+
   const handleAddCustomCity = (newCity) => {
     setCitiesList(prev => [newCity, ...prev]);
     setSelectedCity(newCity);
+    setSimulatedAqi(null);
   };
 
   const tabs = [
@@ -51,9 +100,19 @@ export function App() {
 
   return (
     <div className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col ${highContrast ? 'high-contrast' : ''} ${largeFont ? 'text-large' : ''}`}>
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-emerald-600 focus:text-white focus:rounded-xl focus:shadow-lg focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
       <Navbar
-        selectedCity={selectedCity}
-        onSelectCity={setSelectedCity}
+        selectedCity={displayCity}
+        onSelectCity={(city) => {
+          setSelectedCity(city);
+          setSimulatedAqi(null);
+        }}
         citiesList={citiesList}
         onOpenCustomCityModal={() => setCustomLocationModalOpen(true)}
         selectedProfile={selectedProfile}
@@ -68,8 +127,20 @@ export function App() {
         onToggleLargeFont={() => setLargeFont(!largeFont)}
       />
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-5 space-y-5">
-        <WarningBanner city={selectedCity} profile={selectedProfile} />
+      <main id="main-content" role="main" className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-5 space-y-5">
+        <AqiScenarioSimulator
+          simulatedAqi={simulatedAqi}
+          onSimulateAqi={setSimulatedAqi}
+          currentAqi={selectedCity.currentAQI}
+          isLiveSynced={isLiveSynced}
+        />
+
+        <WarningBanner 
+          city={displayCity} 
+          profile={selectedProfile}
+          isLiveSynced={isLiveSynced}
+          isSimulated={simulatedAqi !== null}
+        />
 
         <div className="flex items-center gap-1 sm:gap-2 p-1 rounded-2xl bg-slate-900/90 border border-slate-800 overflow-x-auto scrollbar-none">
           {tabs.map((tab) => {
@@ -100,39 +171,21 @@ export function App() {
         </div>
 
         <div className="animate-fade-in">
-          {activeTab === 'dashboard' && <SmogRadar city={selectedCity} onNavigateToTab={setActiveTab} />}
-          {activeTab === 'ai-assistant' && <AeroAIChat city={selectedCity} profile={selectedProfile} apiKey={apiKey} />}
-          {activeTab === 'routines' && <RoutinesTab city={selectedCity} />}
-          {activeTab === 'iaq-hacks' && <PurifierLab city={selectedCity} />}
-          {activeTab === 'impact' && <ImpactCalculator city={selectedCity} profile={selectedProfile} />}
-          {activeTab === 'community' && <CommunityShield city={selectedCity} />}
+          {activeTab === 'dashboard' && <SmogRadar city={displayCity} onNavigateToTab={setActiveTab} />}
+          {activeTab === 'ai-assistant' && <AeroAIChat city={displayCity} profile={selectedProfile} apiKey={apiKey} />}
+          {activeTab === 'routines' && <RoutinesTab city={displayCity} profile={selectedProfile} />}
+          {activeTab === 'iaq-hacks' && <PurifierLab city={displayCity} />}
+          {activeTab === 'impact' && <ImpactCalculator city={displayCity} profile={selectedProfile} />}
+          {activeTab === 'community' && <CommunityShield city={displayCity} profile={selectedProfile} />}
         </div>
       </main>
 
-      <footer className="mt-12 border-t border-slate-800/80 bg-slate-900/60 py-8 text-slate-400 text-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Wind className="w-4 h-4 text-emerald-400" />
-            <span className="font-heading font-bold text-white text-sm">AeroGuardian</span>
-            <span>— PromptWars [Challenge 6] Urban Air Quality Assistant</span>
-          </div>
-
-          <div className="flex items-center gap-4 text-slate-400">
-            <button onClick={() => setEvalModalOpen(true)} className="text-emerald-400 hover:underline font-semibold">
-              Verify Challenge Rubric &amp; Diagnostics
-            </button>
-            <span>•</span>
-            <span>Zero-Leak Data Architecture</span>
-            <span>•</span>
-            <span>WHO &amp; US EPA Standards</span>
-          </div>
-        </div>
-      </footer>
+      <AppFooter onOpenEvalModal={() => setEvalModalOpen(true)} />
 
       <EvaluationModal isOpen={evalModalOpen} onClose={() => setEvalModalOpen(false)} />
       <ApiKeyModal isOpen={apiKeyModalOpen} onClose={() => setApiKeyModalOpen(false)} apiKey={apiKey} onSaveApiKey={setApiKey} />
       <CustomLocationModal isOpen={customLocationModalOpen} onClose={() => setCustomLocationModalOpen(false)} onAddCity={handleAddCustomCity} />
-      <SymptomTriageModal isOpen={triageModalOpen} onClose={() => setTriageModalOpen(false)} city={selectedCity} profile={selectedProfile} />
+      <SymptomTriageModal isOpen={triageModalOpen} onClose={() => setTriageModalOpen(false)} city={displayCity} profile={selectedProfile} />
     </div>
   );
 }

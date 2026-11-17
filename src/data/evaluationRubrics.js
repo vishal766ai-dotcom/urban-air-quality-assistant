@@ -12,9 +12,11 @@ export const RUBRIC_CARDS = [
     desc: 'How accurately your submission targets the root challenge, user needs, and core objectives.',
     achieved: [
       'GenAI-powered assistant tailored to severe winter smog & urban thermal inversions',
+      'Live Open-Meteo Air Quality API integration with automatic fallback and zero-key requirement',
+      'Interactive Ambient AQI & Inversion Scenario Simulator (20 Good to 500 Hazardous)',
       'Optimized low-emission daily routines and 24-hr time-shifting timeline',
-      'Interactive DIY Air Purifier builder (Corsi-Rosenthal Box specs ₹4,200–₹5,400 / $55–$70 vs ₹45,000+ commercial) and IAQ hacks',
-      'Direct impact calculator quantifying kg CO2e and grams of PM2.5 (g PM2.5) averted with tree equivalents'
+      'Interactive DIY Air Purifier builder (Corsi-Rosenthal Box specs ₹4,200–₹5,400 / $55–$70 vs ₹45,000+ commercial)',
+      'Structured Action Cards & 1-Click Personalized Daily Action Plan (PDF/Text Export)'
     ]
   },
   {

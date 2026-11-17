@@ -25,9 +25,24 @@ export function SmogRadar({ city, onNavigateToTab }) {
           <div>
             <div className="flex items-center justify-between gap-4 mb-4">
               <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Real-Time Atmospheric Monitoring
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Real-Time Atmospheric Monitoring
+                  </span>
+                  {city.isSimulated ? (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                      Simulated AQI
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                      </span>
+                      <span>Live Open-Meteo Synced</span>
+                    </span>
+                  )}
+                </div>
                 <h2 className="text-xl sm:text-2xl font-heading font-bold text-white flex items-center gap-2">
                   <span>{city.name}</span>
                   <span className="text-sm font-normal text-slate-400">({city.country})</span>

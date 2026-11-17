@@ -3,10 +3,10 @@ import { Calendar, Clock, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { CommuteComparator } from './CommuteComparator';
 
 /**
- * RoutinesTab - Low-emission daily routines and schedule optimizer.
+ * RoutinesTab - Low-emission daily routines and schedule optimizer tailored to location and lifestyle.
  * @param {{ city: import('../utils/calculations').CityModel, profile?: any }} props
  */
-export function RoutinesTab({ city }) {
+export function RoutinesTab({ city, profile }) {
   const [selectedCommuteId, setSelectedCommuteId] = useState('metro');
   const [dailyDistanceKm, setDailyDistanceKm] = useState(18);
   const [checkedHabits, setCheckedHabits] = useState({
@@ -24,6 +24,25 @@ export function RoutinesTab({ city }) {
   const completedHabitsCount = Object.values(checkedHabits).filter(Boolean).length;
   const habitShieldScore = Math.round((completedHabitsCount / 5) * 100);
 
+  const getProfileSpecificTip = () => {
+    if (!profile) return null;
+    if (profile.id === 'toddlers') {
+      return { icon: '👶', text: 'Strollers sit at car exhaust height (~2 ft). Carry infants or use sealed bus transit before 11 AM.' };
+    }
+    if (profile.id === 'asthma') {
+      return { icon: '🫁', text: 'Cold morning soot triggers bronchospasms. Keep rescue inhaler on hand and run bedroom HEPA 24/7.' };
+    }
+    if (profile.id === 'commuter') {
+      return { icon: '🚇', text: 'Shift commute past 9:30 AM or ride electric Metro with car ventilation on Recirculate.' };
+    }
+    if (profile.id === 'athlete') {
+      return { icon: '🏃', text: 'Heavy exertion multiplies lung soot deposition by 400%. Shift training to 1:00 PM or indoor gym.' };
+    }
+    return { icon: '🛡️', text: profile.topRecommendations?.[0] || 'Keep windows sealed during morning inversion.' };
+  };
+
+  const profileTip = getProfileSpecificTip();
+
   return (
     <div className="space-y-6">
       
@@ -39,8 +58,14 @@ export function RoutinesTab({ city }) {
               Low-Emission Daily Routines for {city.name}
             </h2>
             <p className="text-sm text-slate-300 mt-1 max-w-3xl">
-              Winter thermal inversions cause ambient air to be up to 10x more toxic at 7:00 AM than at 2:00 PM. By time-shifting physical activities and choosing clean transit, you dramatically cut personal lung intake while stopping neighborhood emission accumulation.
+              Winter thermal inversions cause ambient air to be up to 10x more toxic at 7:00 AM than at 2:00 PM. By time-shifting physical activities and choosing clean transit, you cut lung intake while stopping neighborhood emission accumulation.
             </p>
+            {profile && (
+              <div className="mt-3 flex items-center gap-2 p-2 rounded-lg bg-slate-950/60 border border-slate-800 text-xs text-slate-300">
+                <span className="text-base">{profileTip.icon}</span>
+                <span><strong>Tailored for {profile.label}:</strong> {profileTip.text}</span>
+              </div>
+            )}
           </div>
 
           <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-700 text-center shrink-0">
