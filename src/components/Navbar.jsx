@@ -1,22 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  ShieldAlert, 
-  Wind, 
-  Sliders, 
-  Key, 
-  CheckCircle2, 
-  Eye, 
-  Type, 
-  MapPin, 
-  Users, 
-  Award,
-  ChevronDown,
-  PlusCircle,
-  HeartPulse
-} from 'lucide-react';
-import { CITIES_DATA, getAqiCategory } from '../data/citiesData';
-import { LIFESTYLE_PROFILES } from '../data/routineOptions';
+import { Wind, Key, Eye, Type, Award, HeartPulse } from 'lucide-react';
+import { CITIES_DATA } from '../data/airQualityData';
+import { CitySelectorDropdown } from './CitySelectorDropdown';
+import { ProfileSelectorDropdown } from './ProfileSelectorDropdown';
 
+/**
+ * Global Navigation Header.
+ * @param {{
+ *   selectedCity: import('../utils/calculations').CityModel,
+ *   onSelectCity: (c: import('../utils/calculations').CityModel) => void,
+ *   citiesList?: import('../utils/calculations').CityModel[],
+ *   onOpenCustomCityModal: () => void,
+ *   selectedProfile: any,
+ *   onSelectProfile: (p: any) => void,
+ *   onOpenApiKeyModal: () => void,
+ *   onOpenEvalModal: () => void,
+ *   onOpenTriageModal: () => void,
+ *   apiKey?: string,
+ *   highContrast: boolean,
+ *   onToggleHighContrast: () => void,
+ *   largeFont: boolean,
+ *   onToggleLargeFont: () => void
+ * }} props
+ */
 export function Navbar({
   selectedCity,
   onSelectCity,
@@ -37,9 +43,6 @@ export function Navbar({
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const navRef = useRef(null);
 
-  const aqiCat = getAqiCategory(selectedCity.currentAQI);
-
-  // Close dropdowns on click outside
   useEffect(() => {
     function handleClickOutside(e) {
       if (navRef.current && !navRef.current.contains(e.target)) {
@@ -53,13 +56,13 @@ export function Navbar({
 
   const toggleCityDropdown = (e) => {
     e.stopPropagation();
-    setProfileDropdownOpen(false); // Mutual exclusivity: closes profile menu immediately
+    setProfileDropdownOpen(false);
     setCityDropdownOpen(prev => !prev);
   };
 
   const toggleProfileDropdown = (e) => {
     e.stopPropagation();
-    setCityDropdownOpen(false); // Mutual exclusivity: closes city menu immediately
+    setCityDropdownOpen(false);
     setProfileDropdownOpen(prev => !prev);
   };
 
@@ -73,7 +76,7 @@ export function Navbar({
             <div className="relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 shadow-lg shadow-emerald-500/20 text-white font-bold">
               <Wind className="w-6 h-6 animate-pulse" />
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-slate-900 flex items-center justify-center">
-                <span className="w-1.5 h-1.5 bg-slate-900 rounded-full"></span>
+                <span className="w-1.5 h-1.5 bg-slate-900 rounded-full" />
               </div>
             </div>
             <div>
@@ -86,137 +89,44 @@ export function Navbar({
                 </span>
               </div>
               <p className="text-xs text-slate-400 hidden sm:block">
-                Winter Smog Navigation, IAQ Hacks & Low-Emission Living
+                Winter Smog Navigation, IAQ Hacks &amp; Low-Emission Living
               </p>
             </div>
           </div>
 
           {/* Quick Selectors: City & Lifestyle Profile */}
           <div className="hidden lg:flex items-center gap-3">
-            {/* City Selector */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={toggleCityDropdown}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-sm text-slate-200 transition"
-                aria-expanded={cityDropdownOpen}
-                aria-label="Select City"
-              >
-                <MapPin className="w-4 h-4 text-emerald-400" />
-                <span className="font-medium">{selectedCity.name}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${aqiCat.bgBadge}`}>
-                  AQI {selectedCity.currentAQI}
-                </span>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-              </button>
+            <CitySelectorDropdown
+              selectedCity={selectedCity}
+              onSelectCity={onSelectCity}
+              citiesList={citiesList}
+              isOpen={cityDropdownOpen}
+              onToggle={toggleCityDropdown}
+              onClose={() => setCityDropdownOpen(false)}
+              onOpenCustomCityModal={onOpenCustomCityModal}
+            />
 
-              {cityDropdownOpen && (
-                <div className="absolute left-0 mt-2 w-72 rounded-xl bg-slate-800 border border-slate-700 shadow-2xl p-2 z-50 animate-fade-in">
-                  <div className="px-2 py-1 text-xs font-semibold uppercase text-slate-400 tracking-wider">
-                    Select Smog Hotspot
-                  </div>
-                  <div className="max-h-60 overflow-y-auto space-y-1">
-                    {citiesList.map((city) => {
-                      const cat = getAqiCategory(city.currentAQI);
-                      return (
-                        <button
-                          key={city.id}
-                          onClick={() => {
-                            onSelectCity(city);
-                            setCityDropdownOpen(false);
-                          }}
-                          className={`w-full text-left flex items-center justify-between px-3 py-2 rounded-lg text-sm transition ${
-                            city.id === selectedCity.id
-                              ? 'bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30'
-                              : 'text-slate-300 hover:bg-slate-700/60'
-                          }`}
-                        >
-                          <div>
-                            <div>{city.name}</div>
-                            <div className="text-xs text-slate-400">{city.country} ({city.currency?.symbol} {city.currency?.code})</div>
-                          </div>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${cat.bgBadge}`}>
-                            {city.currentAQI}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Add Custom Location Trigger */}
-                  <div className="pt-2 mt-1 border-t border-slate-700">
-                    <button
-                      onClick={() => {
-                        setCityDropdownOpen(false);
-                        onOpenCustomCityModal();
-                      }}
-                      className="w-full py-1.5 px-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
-                    >
-                      <PlusCircle className="w-3.5 h-3.5" />
-                      <span>+ Add Custom Location / Local AQI</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Profile Selector */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={toggleProfileDropdown}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-sm text-slate-200 transition"
-                aria-expanded={profileDropdownOpen}
-                aria-label="Select Demographic Profile"
-              >
-                <Users className="w-4 h-4 text-cyan-400" />
-                <span className="font-medium truncate max-w-[160px]">{selectedProfile.label}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-              </button>
-
-              {profileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-72 rounded-xl bg-slate-800 border border-slate-700 shadow-2xl p-2 z-50 animate-fade-in">
-                  <div className="px-2 py-1 text-xs font-semibold uppercase text-slate-400 tracking-wider">
-                    Tailor for Household
-                  </div>
-                  <div className="space-y-1">
-                    {LIFESTYLE_PROFILES.map((profile) => (
-                      <button
-                        key={profile.id}
-                        onClick={() => {
-                          onSelectProfile(profile);
-                          setProfileDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
-                          profile.id === selectedProfile.id
-                            ? 'bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30'
-                            : 'text-slate-300 hover:bg-slate-700/60'
-                        }`}
-                      >
-                        <div className="font-medium">{profile.label}</div>
-                        <div className="text-xs text-slate-400 line-clamp-1">{profile.description}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <ProfileSelectorDropdown
+              selectedProfile={selectedProfile}
+              onSelectProfile={onSelectProfile}
+              isOpen={profileDropdownOpen}
+              onToggle={toggleProfileDropdown}
+              onClose={() => setProfileDropdownOpen(false)}
+            />
           </div>
 
-          {/* Action Buttons: Evaluator Verification, API Key, Health Triage, Accessibility */}
+          {/* Action Buttons */}
           <div className="flex items-center gap-2">
-            {/* PromptWars Evaluation & Diagnostics Runner */}
             <button
               onClick={onOpenEvalModal}
               title="View Challenge Rubric Verification & Automated Self-Tests"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs sm:text-sm font-semibold shadow-md shadow-emerald-700/30 transition transform active:scale-95"
             >
               <Award className="w-4 h-4" />
-              <span className="hidden sm:inline">Evaluation Rubric & Tests</span>
+              <span className="hidden sm:inline">Evaluation Rubric &amp; Tests</span>
               <span className="sm:hidden">Tests</span>
             </button>
 
-            {/* Smog Health & Respiratory Triage Button */}
             <button
               onClick={onOpenTriageModal}
               title="Smog Health & Respiratory Triage Guide"
@@ -226,10 +136,9 @@ export function Navbar({
               <span className="hidden xl:inline">Health Triage</span>
             </button>
 
-            {/* Gemini API Key Button */}
             <button
               onClick={onOpenApiKeyModal}
-              title={apiKey ? "Gemini 1.5 Flash Connected" : "Configure Gemini API Key (or use built-in engine)"}
+              title={apiKey ? "Gemini 1.5 Flash Connected" : "Configure Gemini API Key"}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition ${
                 apiKey
                   ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
@@ -240,7 +149,6 @@ export function Navbar({
               <span className="hidden md:inline">{apiKey ? 'Gemini Active' : 'Gemini Key'}</span>
             </button>
 
-            {/* High Contrast Toggle */}
             <button
               onClick={onToggleHighContrast}
               title="Toggle High Contrast (WCAG Accessibility)"
@@ -254,7 +162,6 @@ export function Navbar({
               <Eye className="w-4 h-4" />
             </button>
 
-            {/* Font Size Booster */}
             <button
               onClick={onToggleLargeFont}
               title="Toggle Large Text"
@@ -274,3 +181,5 @@ export function Navbar({
     </header>
   );
 }
+
+export default Navbar;

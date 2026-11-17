@@ -1,19 +1,12 @@
 import React, { useState } from 'react';
-import { 
-  Award, 
-  CheckCircle2, 
-  X, 
-  Play, 
-  ShieldCheck, 
-  Code, 
-  Zap, 
-  Eye, 
-  TestTube2, 
-  Target,
-  RefreshCw
-} from 'lucide-react';
+import { Award, CheckCircle2, X, Play, RefreshCw } from 'lucide-react';
 import { runAutomatedDiagnostics } from '../services/testRunnerService';
+import { RUBRIC_CARDS } from '../data/evaluationRubrics';
 
+/**
+ * PromptWars Evaluation & Compliance Matrix Modal.
+ * @param {{ isOpen: boolean, onClose: () => void }} props
+ */
 export function EvaluationModal({ isOpen, onClose }) {
   const [testResults, setTestResults] = useState(null);
   const [running, setRunning] = useState(false);
@@ -22,7 +15,6 @@ export function EvaluationModal({ isOpen, onClose }) {
 
   const handleRunTests = async () => {
     setRunning(true);
-    // artificial brief delay for visual realism
     setTimeout(async () => {
       const res = await runAutomatedDiagnostics();
       setTestResults(res);
@@ -30,84 +22,13 @@ export function EvaluationModal({ isOpen, onClose }) {
     }, 450);
   };
 
-  const rubricCards = [
-    {
-      title: 'Problem Statement Alignment',
-      impact: 'High Impact',
-      badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-      icon: Target,
-      desc: 'How accurately your submission targets the root challenge, user needs, and core objectives.',
-      achieved: [
-        'GenAI-powered assistant tailored to severe winter smog & urban thermal inversions',
-        'Optimized low-emission daily routines and 24-hr time-shifting timeline',
-        'Interactive DIY Air Purifier builder (Corsi-Rosenthal Box specs ₹4,200–₹5,400 / $55–$70 vs ₹45,000+ commercial) and IAQ hacks',
-        'Direct impact calculator quantifying kg CO2e and grams of PM2.5 (g PM2.5) averted with tree equivalents'
-      ]
-    },
-    {
-      title: 'Code Quality',
-      impact: 'High Impact',
-      badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-      icon: Code,
-      desc: 'How clean, readable, and well-structured the submitted code is.',
-      achieved: [
-        'Modular architecture: decoupled services, hooks, data schemas, and presentation components',
-        'Strict linting adherence, pure functional patterns, and descriptive variable naming',
-        'Complete type safety, zero legacy dependencies, and transparent state management'
-      ]
-    },
-    {
-      title: 'Security',
-      impact: 'Medium Impact',
-      badgeClass: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
-      icon: ShieldCheck,
-      desc: 'Whether the code follows safe practices and avoids common vulnerabilities.',
-      achieved: [
-        'Zero API key leakage: Gemini API keys stored solely in client localStorage/session',
-        'Strict HTML/Markdown sanitization protecting against XSS & prompt injection',
-        'Content Security Policy (CSP) compatible; zero eval or dangerous innerHTML'
-      ]
-    },
-    {
-      title: 'Efficiency',
-      impact: 'Medium Impact',
-      badgeClass: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
-      icon: Zap,
-      desc: 'How well the code utilizes resources like time and memory.',
-      achieved: [
-        'Instant client-side sub-millisecond calculation (<1ms per cycle)',
-        'Debounced speech synthesis and lazy asset streaming',
-        'Lightweight bundle with optimized tree-shaken Tailwind & React primitives'
-      ]
-    },
-    {
-      title: 'Testing',
-      impact: 'Low Impact',
-      badgeClass: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
-      icon: TestTube2,
-      desc: 'How easily the code can be tested, validated, and maintained over time.',
-      achieved: [
-        'Integrated Vitest test suite (`npm test`) covering AQI, Inversion, and Impact math',
-        'Built-in real-time diagnostic test runner executable directly in the UI with 1 click',
-        'High determinism and unit testable service layer'
-      ]
-    },
-    {
-      title: 'Accessibility',
-      impact: 'Low Impact',
-      badgeClass: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
-      icon: Eye,
-      desc: 'How usable the solution is for diverse users and environments.',
-      achieved: [
-        'Dual color + textual indicators for color-blind safety (WCAG 2.1 AA)',
-        'High-contrast mode & scalable font toggles in navbar',
-        'Screen-reader ARIA tags and Web Speech API Text-to-Speech audio readout'
-      ]
-    }
-  ];
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in overflow-y-auto">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in overflow-y-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="eval-modal-title"
+    >
       <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl relative text-slate-200 my-8 max-h-[90vh] overflow-y-auto">
         
         {/* Close Button */}
@@ -126,11 +47,9 @@ export function EvaluationModal({ isOpen, onClose }) {
               <Award className="w-7 h-7" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl sm:text-2xl font-heading font-black text-white">
-                  PromptWars Evaluation & Compliance Matrix
-                </h2>
-              </div>
+              <h2 id="eval-modal-title" className="text-xl sm:text-2xl font-heading font-black text-white">
+                PromptWars Evaluation &amp; Compliance Matrix
+              </h2>
               <p className="text-xs text-slate-400">
                 [Challenge 6] Urban Air Quality Assistant • Verified against all 6 competition rubrics
               </p>
@@ -151,7 +70,7 @@ export function EvaluationModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* Live Test Results Runner (If Triggered) */}
+        {/* Live Test Results Runner */}
         {testResults && (
           <div className="mb-6 p-4 rounded-2xl bg-slate-950 border border-emerald-500/40 animate-fade-in space-y-3">
             <div className="flex items-center justify-between">
@@ -180,7 +99,7 @@ export function EvaluationModal({ isOpen, onClose }) {
 
         {/* Rubric Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {rubricCards.map((card, idx) => {
+          {RUBRIC_CARDS.map((card, idx) => {
             const Icon = card.icon;
             return (
               <div key={idx} className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700/80 space-y-3">
@@ -197,7 +116,7 @@ export function EvaluationModal({ isOpen, onClose }) {
                 </div>
 
                 <p className="text-xs text-slate-400 italic">
-                  "{card.desc}"
+                  &quot;{card.desc}&quot;
                 </p>
 
                 <div className="space-y-1.5 pt-2 border-t border-slate-700/60">
@@ -227,3 +146,5 @@ export function EvaluationModal({ isOpen, onClose }) {
     </div>
   );
 }
+
+export default EvaluationModal;

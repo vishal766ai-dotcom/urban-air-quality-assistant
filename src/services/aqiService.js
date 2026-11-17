@@ -1,6 +1,7 @@
-import { CITIES_DATA, getAqiCategory } from '../data/citiesData';
+import { CITIES_DATA } from '../data/citiesData';
+import { getAqiCategory, calculateInversionDanger } from '../utils/calculations';
 
-export { getAqiCategory };
+export { getAqiCategory, calculateInversionDanger };
 
 export function getCityById(id) {
   return CITIES_DATA.find(c => c.id === id) || CITIES_DATA[0];
@@ -16,27 +17,6 @@ export function searchCities(query) {
   );
 }
 
-export function calculateInversionDanger({ temp, windSpeed, humidity }) {
-  // Winter thermal inversion danger increases when wind is calm (<3 m/s), humidity is high (>70%), and temperatures are cold
-  let score = 0;
-  if (windSpeed < 3.0) score += 40;
-  else if (windSpeed < 6.0) score += 20;
-
-  if (humidity > 80) score += 30;
-  else if (humidity > 60) score += 15;
-
-  if (temp < 15) score += 30;
-  else if (temp < 22) score += 15;
-
-  if (score >= 80) {
-    return { level: 'Critical Trap', color: 'rose', desc: 'Severe cold stagnant air boundary layer traps ground pollutants.' };
-  } else if (score >= 50) {
-    return { level: 'High Inversion', color: 'amber', desc: 'Moderate cold air lid preventing vertical dispersion.' };
-  } else {
-    return { level: 'Low Inversion', color: 'emerald', desc: 'Active wind or solar thermal currents assisting dispersion.' };
-  }
-}
-
 export function getRecommendedVentilationHours(hourlyForecast = []) {
   const safeSlots = hourlyForecast.filter(h => h.safeVentilation);
   if (safeSlots.length > 0) {
@@ -45,7 +25,7 @@ export function getRecommendedVentilationHours(hourlyForecast = []) {
   return '1:00 PM – 3:30 PM (Midday solar dispersion only)';
 }
 
-export function getHealthAdvisoriesForAQI(aqi, profileId = 'family-young-kids') {
+export function getHealthAdvisoriesForAQI(aqi) {
   const cat = getAqiCategory(aqi);
 
   const baseTips = [];

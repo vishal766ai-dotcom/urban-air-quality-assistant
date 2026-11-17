@@ -63,8 +63,7 @@ export function useSpeech() {
       };
 
       recognition.start();
-    } catch (err) {
-      console.warn('Speech recognition error:', err);
+    } catch {
       setIsListening(false);
     }
   };

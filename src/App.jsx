@@ -1,29 +1,17 @@
 import React, { useState } from 'react';
-import { 
-  LayoutDashboard, 
-  Bot, 
-  Calendar, 
-  Wrench, 
-  BarChart3, 
-  Users, 
-  Award, 
-  Sparkles, 
-  Heart,
-  Wind,
-  ShieldCheck
-} from 'lucide-react';
-import { CITIES_DATA } from './data/citiesData';
-import { LIFESTYLE_PROFILES } from './data/routineOptions';
+import { LayoutDashboard, Bot, Calendar, Wrench, BarChart3, Users, Wind } from 'lucide-react';
+import { CITIES_DATA } from './data/airQualityData';
+import { LIFESTYLE_PROFILES } from './data/airQualityData';
 import { useLocalStorage } from './hooks/useLocalStorage';
 
 import { Navbar } from './components/Navbar';
-import { WinterSmogBanner } from './components/WinterSmogBanner';
-import { DashboardOverview } from './components/DashboardOverview';
-import { GenAiAssistant } from './components/GenAiAssistant';
-import { DailyRoutinePlanner } from './components/DailyRoutinePlanner';
-import { IaqHacksStudio } from './components/IaqHacksStudio';
-import { ImpactExplainer } from './components/ImpactExplainer';
-import { CommunitySmogShield } from './components/CommunitySmogShield';
+import { WarningBanner } from './components/WarningBanner';
+import { SmogRadar } from './components/SmogRadar';
+import { AeroAIChat } from './components/AeroAIChat';
+import { RoutinesTab } from './components/RoutinesTab';
+import { PurifierLab } from './components/PurifierLab';
+import { ImpactCalculator } from './components/ImpactCalculator';
+import { CommunityShield } from './components/CommunityShield';
 import { EvaluationModal } from './components/EvaluationModal';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { CustomLocationModal } from './components/CustomLocationModal';
@@ -34,11 +22,10 @@ export const PERMANENT_API_KEY = (import.meta.env && import.meta.env.VITE_GEMINI
 
 export function App() {
   const [citiesList, setCitiesList] = useState(CITIES_DATA);
-  const [selectedCity, setSelectedCity] = useState(CITIES_DATA[0]); // Delhi NCR
-  const [selectedProfile, setSelectedProfile] = useState(LIFESTYLE_PROFILES[0]); // Family with young kids
+  const [selectedCity, setSelectedCity] = useState(CITIES_DATA[0]);
+  const [selectedProfile, setSelectedProfile] = useState(LIFESTYLE_PROFILES[0]);
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  // Initialize with permanent API key out-of-the-box
   const [apiKey, setApiKey] = useLocalStorage('aeroguardian_gemini_key', PERMANENT_API_KEY);
   const [evalModalOpen, setEvalModalOpen] = useState(false);
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
@@ -53,7 +40,6 @@ export function App() {
     setSelectedCity(newCity);
   };
 
-  // Shortened tab labels for seamless fit on all laptop & tablet displays without horizontal overflow
   const tabs = [
     { id: 'dashboard', label: 'Smog Radar', icon: LayoutDashboard },
     { id: 'ai-assistant', label: 'AeroAI', icon: Bot, badge: 'GenAI' },
@@ -65,8 +51,6 @@ export function App() {
 
   return (
     <div className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col ${highContrast ? 'high-contrast' : ''} ${largeFont ? 'text-large' : ''}`}>
-      
-      {/* Top Navigation */}
       <Navbar
         selectedCity={selectedCity}
         onSelectCity={setSelectedCity}
@@ -84,13 +68,9 @@ export function App() {
         onToggleLargeFont={() => setLargeFont(!largeFont)}
       />
 
-      {/* Main Container */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-5 space-y-5">
-        
-        {/* Winter Smog & Thermal Inversion Alert Banner */}
-        <WinterSmogBanner city={selectedCity} profile={selectedProfile} />
+        <WarningBanner city={selectedCity} profile={selectedProfile} />
 
-        {/* Tab Switcher Navigation (Clean, unclipped 6-tab row) */}
         <div className="flex items-center gap-1 sm:gap-2 p-1 rounded-2xl bg-slate-900/90 border border-slate-800 overflow-x-auto scrollbar-none">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -119,57 +99,16 @@ export function App() {
           })}
         </div>
 
-        {/* Dynamic Tab Views */}
         <div className="animate-fade-in">
-          {activeTab === 'dashboard' && (
-            <DashboardOverview 
-              city={selectedCity} 
-              profile={selectedProfile}
-              onNavigateToTab={setActiveTab}
-            />
-          )}
-
-          {activeTab === 'ai-assistant' && (
-            <GenAiAssistant
-              city={selectedCity}
-              profile={selectedProfile}
-              apiKey={apiKey}
-              onOpenApiKeyModal={() => setApiKeyModalOpen(true)}
-            />
-          )}
-
-          {activeTab === 'routines' && (
-            <DailyRoutinePlanner
-              city={selectedCity}
-              profile={selectedProfile}
-            />
-          )}
-
-          {activeTab === 'iaq-hacks' && (
-            <IaqHacksStudio
-              city={selectedCity}
-              profile={selectedProfile}
-            />
-          )}
-
-          {activeTab === 'impact' && (
-            <ImpactExplainer
-              city={selectedCity}
-              profile={selectedProfile}
-            />
-          )}
-
-          {activeTab === 'community' && (
-            <CommunitySmogShield
-              city={selectedCity}
-              profile={selectedProfile}
-            />
-          )}
+          {activeTab === 'dashboard' && <SmogRadar city={selectedCity} onNavigateToTab={setActiveTab} />}
+          {activeTab === 'ai-assistant' && <AeroAIChat city={selectedCity} profile={selectedProfile} apiKey={apiKey} />}
+          {activeTab === 'routines' && <RoutinesTab city={selectedCity} />}
+          {activeTab === 'iaq-hacks' && <PurifierLab city={selectedCity} />}
+          {activeTab === 'impact' && <ImpactCalculator city={selectedCity} profile={selectedProfile} />}
+          {activeTab === 'community' && <CommunityShield city={selectedCity} />}
         </div>
-
       </main>
 
-      {/* Footer */}
       <footer className="mt-12 border-t border-slate-800/80 bg-slate-900/60 py-8 text-slate-400 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
@@ -179,46 +118,21 @@ export function App() {
           </div>
 
           <div className="flex items-center gap-4 text-slate-400">
-            <button
-              onClick={() => setEvalModalOpen(true)}
-              className="text-emerald-400 hover:underline font-semibold"
-            >
-              Verify Challenge Rubric & Diagnostics
+            <button onClick={() => setEvalModalOpen(true)} className="text-emerald-400 hover:underline font-semibold">
+              Verify Challenge Rubric &amp; Diagnostics
             </button>
             <span>•</span>
             <span>Zero-Leak Data Architecture</span>
             <span>•</span>
-            <span>WHO & US EPA Standards</span>
+            <span>WHO &amp; US EPA Standards</span>
           </div>
         </div>
       </footer>
 
-      {/* Modals */}
-      <EvaluationModal
-        isOpen={evalModalOpen}
-        onClose={() => setEvalModalOpen(false)}
-      />
-
-      <ApiKeyModal
-        isOpen={apiKeyModalOpen}
-        onClose={() => setApiKeyModalOpen(false)}
-        apiKey={apiKey}
-        onSaveApiKey={setApiKey}
-      />
-
-      <CustomLocationModal
-        isOpen={customLocationModalOpen}
-        onClose={() => setCustomLocationModalOpen(false)}
-        onAddCity={handleAddCustomCity}
-      />
-
-      <SymptomTriageModal
-        isOpen={triageModalOpen}
-        onClose={() => setTriageModalOpen(false)}
-        city={selectedCity}
-        profile={selectedProfile}
-      />
-
+      <EvaluationModal isOpen={evalModalOpen} onClose={() => setEvalModalOpen(false)} />
+      <ApiKeyModal isOpen={apiKeyModalOpen} onClose={() => setApiKeyModalOpen(false)} apiKey={apiKey} onSaveApiKey={setApiKey} />
+      <CustomLocationModal isOpen={customLocationModalOpen} onClose={() => setCustomLocationModalOpen(false)} onAddCity={handleAddCustomCity} />
+      <SymptomTriageModal isOpen={triageModalOpen} onClose={() => setTriageModalOpen(false)} city={selectedCity} profile={selectedProfile} />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HeartPulse, X, AlertTriangle, ShieldCheck, CheckCircle2, PhoneCall } from 'lucide-react';
+import { HeartPulse, X, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 export function SymptomTriageModal({ isOpen, onClose, city, profile }) {
   const [selectedSymptoms, setSelectedSymptoms] = useState({

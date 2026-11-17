@@ -16,7 +16,6 @@ export class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('AeroGuardian ErrorBoundary caught an exception:', error, errorInfo);
     this.setState({ errorInfo });
   }
 

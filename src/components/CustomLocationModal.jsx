@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, X, PlusCircle, Check, Sparkles, Navigation } from 'lucide-react';
+import { MapPin, X, PlusCircle } from 'lucide-react';
 import { createCustomCity } from '../data/citiesData';
 
 export function CustomLocationModal({ isOpen, onClose, onAddCity }) {

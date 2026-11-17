@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Key, X, ShieldCheck, Check, Sparkles, RotateCcw } from 'lucide-react';
+import { Key, X, ShieldCheck, Check, RotateCcw } from 'lucide-react';
 import { PERMANENT_API_KEY } from '../services/geminiService';
 
 export function ApiKeyModal({ isOpen, onClose, apiKey, onSaveApiKey }) {
@@ -89,7 +89,7 @@ export function ApiKeyModal({ isOpen, onClose, apiKey, onSaveApiKey }) {
               <ShieldCheck className="w-4 h-4 shrink-0" />
               <span>Zero-Leak Security Guarantee:</span>
             </div>
-            <p>Your API key is stored locally in your browser sandbox and transmitted directly to Google's official Gemini endpoint over HTTPS.</p>
+            <p>Your API key is stored locally in your browser sandbox and transmitted directly to Google&apos;s official Gemini endpoint over HTTPS.</p>
           </div>
 
           {savedSuccess && (
