@@ -1,10 +1,17 @@
 import React from 'react';
-import { Sliders, RefreshCw, Zap } from 'lucide-react';
+import { RefreshCw, Zap } from 'lucide-react';
 import { getAqiCategory } from '../utils/calculations';
+import { SimulatorHeader } from './SimulatorHeader';
+
+const PRESETS = [
+  { label: 'Clean Air', aqi: 35, color: 'hover:border-emerald-500' },
+  { label: 'Moderate', aqi: 85, color: 'hover:border-amber-500' },
+  { label: 'Inversion Alert', aqi: 220, color: 'hover:border-purple-500' },
+  { label: 'Winter Crisis', aqi: 415, color: 'hover:border-rose-500' }
+];
 
 /**
  * Interactive Ambient AQI & Emergency Scenario Simulator.
- * Allows judges and users to dynamically simulate conditions from 20 (Good) to 500 (Hazardous).
  * @param {{
  *   simulatedAqi: number | null,
  *   onSimulateAqi: (aqi: number | null) => void,
@@ -22,48 +29,16 @@ export function AqiScenarioSimulator({
   const isSimulated = simulatedAqi !== null;
   const cat = getAqiCategory(activeValue);
 
-  const presets = [
-    { label: 'Clean Air', aqi: 35, color: 'hover:border-emerald-500' },
-    { label: 'Moderate', aqi: 85, color: 'hover:border-amber-500' },
-    { label: 'Inversion Alert', aqi: 220, color: 'hover:border-purple-500' },
-    { label: 'Winter Crisis', aqi: 415, color: 'hover:border-rose-500' }
-  ];
-
   return (
     <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-3.5 sm:p-4 shadow-xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <div className={`p-1.5 rounded-lg ${isSimulated ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
-            <Sliders className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-heading font-bold text-white uppercase tracking-wider">
-                Interactive Ambient AQI Simulator
-              </span>
-              {isSimulated ? (
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse">
-                  Simulation Mode
-                </span>
-              ) : isLiveSynced ? (
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                  </span>
-                  <span>Live Feed</span>
-                </span>
-              ) : null}
-            </div>
-            <span className="text-[11px] text-slate-400">
-              Drag slider to watch the Warning Banner, Safe Airing status, and Defense Protocols adapt dynamically
-            </span>
-          </div>
-        </div>
+        <SimulatorHeader
+          isSimulated={isSimulated}
+          isLiveSynced={isLiveSynced}
+        />
 
-        {/* Quick Presets & Reset */}
         <div className="flex items-center gap-1.5 shrink-0">
-          {presets.map((p) => (
+          {PRESETS.map((p) => (
             <button
               key={p.aqi}
               onClick={() => onSimulateAqi(p.aqi)}
@@ -86,7 +61,6 @@ export function AqiScenarioSimulator({
         </div>
       </div>
 
-      {/* Slider Bar */}
       <div className="flex items-center gap-3">
         <span className="text-xs text-slate-400 font-mono shrink-0 whitespace-nowrap">
           MIN 20

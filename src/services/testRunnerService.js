@@ -3,12 +3,15 @@
  * Validates Code Quality, Security, Efficiency, Accessibility, Testing, and Problem Alignment
  */
 
-import { getAqiCategory, calculateInversionDanger } from './aqiService';
-import { calculatePersonalImpact } from './impactCalculator';
+import { getAqiCategory, calculateInversionDanger, calculatePersonalImpact } from '../utils/calculations';
 import { askGenAiAssistant } from './geminiService';
-import { CITIES_DATA, createCustomCity } from '../data/citiesData';
-import { LIFESTYLE_PROFILES } from '../data/routineOptions';
-import { DIY_PURIFIERS, getPurifierLocalizedData } from '../data/iaqHacks';
+import { 
+  CITIES_DATA, 
+  createCustomCity, 
+  LIFESTYLE_PROFILES, 
+  DIY_PURIFIERS, 
+  getPurifierLocalizedData 
+} from '../data/airQualityData';
 
 export async function runAutomatedDiagnostics() {
   const results = [];

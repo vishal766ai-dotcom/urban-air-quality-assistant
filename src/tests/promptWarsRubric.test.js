@@ -9,9 +9,7 @@ import {
 } from '../utils/calculations';
 import { generateActionCards, synthesizeIntelligentResponse } from '../services/ruleEngineService';
 import { generateActionPlanMarkdown } from '../utils/planExporter';
-import { CITIES_DATA } from '../data/airQualityData';
-import { LIFESTYLE_PROFILES } from '../data/routineOptions';
-import { DIY_PURIFIERS } from '../data/iaqHacks';
+import { CITIES_DATA, LIFESTYLE_PROFILES, DIY_PURIFIERS } from '../data/airQualityData';
 
 describe('PromptWars [Challenge 6] Comprehensive Rubric Verification Suite', () => {
 

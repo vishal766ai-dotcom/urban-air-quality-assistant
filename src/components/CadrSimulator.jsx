@@ -11,10 +11,15 @@ import { calculateTurnoverMinutes, calculateAirChangesPerHour } from '../utils/c
  *   cityName: string
  * }} props
  */
+const CADR_PRESETS = {
+  'corsi-rosenthal': 580,
+  'budget-single-fan': 220
+};
+
 export function CadrSimulator({ roomSizeSqFt, setRoomSizeSqFt, activePurifierId, cityName }) {
-  const cadrNum = activePurifierId === 'corsi-rosenthal' ? 580 : activePurifierId === 'budget-single-fan' ? 220 : 160;
+  const cadrNum = CADR_PRESETS[activePurifierId] || 160;
   const minutesPerAirChange = calculateTurnoverMinutes(roomSizeSqFt, cadrNum);
-  const airChangesPerHour = calculateAirChangesPerHour(minutesPerAirChange);
+  const airChangesPerHour = calculateAirChangesPerHour(roomSizeSqFt, cadrNum);
 
   return (
     <div className="lg:col-span-5 rounded-xl bg-slate-900/80 border border-slate-700/80 p-5 flex flex-col justify-between space-y-4">

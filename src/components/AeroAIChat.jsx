@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { Bot } from 'lucide-react';
-import { askGenAiAssistant } from '../services/geminiService';
 import { useSpeech } from '../hooks/useSpeech';
-import { exportPersonalizedActionPlan } from '../utils/planExporter';
+import { useGeminiAssistant } from '../hooks/useGeminiAssistant';
+import { exportChatTranscript } from '../utils/planExporter';
 import { AeroAIMessageItem } from './AeroAIMessageItem';
 import { SmartPromptBar } from './SmartPromptBar';
 import { ChatInputBar } from './ChatInputBar';
@@ -13,87 +13,26 @@ import { ChatHeaderBar } from './ChatHeaderBar';
  * @param {{ city: import('../utils/calculations').CityModel, profile: any, apiKey?: string }} props
  */
 export function AeroAIChat({ city, profile, apiKey }) {
-  const [messages, setMessages] = useState([
-    {
-      id: 'welcome',
-      role: 'assistant',
-      content: `Hello! I'm your **AeroGuardian GenAI Assistant**. 
+  const {
+    messages,
+    inputQuery,
+    setInputQuery,
+    loading,
+    messagesEndRef,
+    handleSend,
+    handleClearHistory,
+    handleExportPlan
+  } = useGeminiAssistant({ city, profile, apiKey });
 
-I am actively tracking ambient conditions in **${city.name}** (Current AQI: **${city.currentAQI}** - ${city.category}) with personalized defense protocols calibrated for **${profile.label}**.
-
-How can I help you today? You can choose one of the smart prompt cards below, speak with the mic, or generate a 1-click personalized daily action plan!`,
-      source: 'AeroGuardian GenAI Engine',
-      actionCards: [
-        {
-          category: 'Immediate Indoor Action',
-          action: city.currentAQI > 200 
-            ? 'Seal windows and keep DIY Corsi-Rosenthal / HEPA filtration running.' 
-            : 'Prepare for 1:00 PM – 3:30 PM safe airing window.',
-          status: city.currentAQI > 200 ? 'Critical' : 'Safe Window'
-        },
-        {
-          category: 'Commute Shift Protocol',
-          action: 'Switch to electric metro or carpool with cabin recirculate enabled.',
-          status: '-80% Soot'
-        },
-        {
-          category: 'Mask & Filter Spec',
-          action: 'Use certified NIOSH N95 / KF94 respirator with snug facial seal.',
-          status: 'Mandatory'
-        }
-      ]
-    }
-  ]);
-
-  const [inputQuery, setInputQuery] = useState('');
-  const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef(null);
-  const { speak, stopSpeaking, isSpeaking, startListening, isListening, speechSupported, recognitionSupported } = useSpeech();
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
-
-  const handleSend = async (queryToSend) => {
-    const q = (queryToSend || inputQuery).trim();
-    if (!q || loading) return;
-
-    const userMsg = { id: Date.now().toString(), role: 'user', content: q };
-    setMessages(prev => [...prev, userMsg]);
-    setInputQuery('');
-    setLoading(true);
-
-    try {
-      const response = await askGenAiAssistant({
-        userMessage: q,
-        apiKey,
-        cityData: city,
-        lifestyleProfile: profile,
-        conversationHistory: messages
-      });
-
-      const aiMsg = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response.text,
-        source: response.source,
-        actionCards: response.actionCards
-      };
-      setMessages(prev => [...prev, aiMsg]);
-    } catch {
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: 'Sorry, I encountered an issue generating an answer. Please check your network connection and try again.',
-          source: 'Error'
-        }
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    speak,
+    stopSpeaking,
+    isSpeaking,
+    startListening,
+    isListening,
+    speechSupported,
+    recognitionSupported
+  } = useSpeech();
 
   const handleVoiceInput = () => {
     if (isListening) return;
@@ -101,31 +40,6 @@ How can I help you today? You can choose one of the smart prompt cards below, sp
       setInputQuery(transcript);
       handleSend(transcript);
     });
-  };
-
-  const handleClearHistory = () => {
-    stopSpeaking();
-    setMessages([
-      {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: `Chat history reset. Ready with live guidance for **${city.name}**!`,
-        source: 'AeroGuardian GenAI Engine'
-      }
-    ]);
-  };
-
-  const handleDownloadChat = () => {
-    const content = messages
-      .map(m => `--- ${m.role.toUpperCase()} (${m.source || 'User'}) ---\n${m.content}\n`)
-      .join('\n');
-    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `AeroGuardian_Chat_${city.name.replace(/\s+/g, '_')}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   return (
@@ -137,8 +51,8 @@ How can I help you today? You can choose one of the smart prompt cards below, sp
         apiKey={apiKey}
         isSpeaking={isSpeaking}
         onStopSpeaking={stopSpeaking}
-        onGeneratePlan={() => exportPersonalizedActionPlan(city, profile)}
-        onDownloadPlan={handleDownloadChat}
+        onGeneratePlan={handleExportPlan}
+        onDownloadPlan={() => exportChatTranscript(messages, city.name)}
         onClearHistory={handleClearHistory}
       />
 

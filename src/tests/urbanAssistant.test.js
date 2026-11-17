@@ -1,10 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { getAqiCategory, calculateInversionDanger, getRecommendedVentilationHours } from '../services/aqiService';
-import { calculatePersonalImpact } from '../services/impactCalculator';
+import { 
+  getAqiCategory, 
+  calculateInversionDanger, 
+  getRecommendedVentilationHours,
+  calculatePersonalImpact 
+} from '../utils/calculations';
 import { askGenAiAssistant } from '../services/geminiService';
-import { CITIES_DATA, createCustomCity } from '../data/citiesData';
-import { LIFESTYLE_PROFILES } from '../data/routineOptions';
-import { DIY_PURIFIERS, getPurifierLocalizedData } from '../data/iaqHacks';
+import { 
+  CITIES_DATA, 
+  createCustomCity, 
+  LIFESTYLE_PROFILES, 
+  DIY_PURIFIERS, 
+  getPurifierLocalizedData 
+} from '../data/airQualityData';
 
 describe('Urban Air Quality Assistant Test Suite', () => {
 

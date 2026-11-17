@@ -130,3 +130,16 @@ export function calculateAiringCountdown(now = new Date()) {
     minsUntil
   };
 }
+
+/**
+ * Returns formatted ventilation hours based on hourly forecast data.
+ * @param {Array<{ hour: string, safeVentilation: boolean }>} [hourlyForecast=[]]
+ * @returns {string} Safe ventilation window description
+ */
+export function getRecommendedVentilationHours(hourlyForecast = []) {
+  const safeSlots = hourlyForecast.filter(h => h.safeVentilation);
+  if (safeSlots.length > 0) {
+    return safeSlots.map(s => s.hour).join(', ');
+  }
+  return '1:00 PM – 3:30 PM (Midday solar dispersion only)';
+}

@@ -14,7 +14,8 @@ export {
   calculateTurnoverMinutes,
   calculateAirChangesPerHour,
   calculateInversionDanger,
-  calculateAiringCountdown
+  calculateAiringCountdown,
+  getRecommendedVentilationHours
 } from './inversionCalculations';
 
 export {

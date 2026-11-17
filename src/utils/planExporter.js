@@ -74,4 +74,22 @@ export function exportPersonalizedActionPlan(city, profile, cards = []) {
   URL.revokeObjectURL(url);
 }
 
+/**
+ * Downloads full conversation transcript as markdown.
+ * @param {Array<{ role: string, source?: string, content: string }>} messages
+ * @param {string} cityName
+ */
+export function exportChatTranscript(messages, cityName) {
+  const content = messages
+    .map(m => `--- ${m.role.toUpperCase()} (${m.source || 'User'}) ---\n${m.content}\n`)
+    .join('\n');
+  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `AeroGuardian_Chat_${cityName.replace(/\s+/g, '_')}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default exportPersonalizedActionPlan;

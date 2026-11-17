@@ -4,6 +4,17 @@
  */
 
 /**
+ * Evaluates atmospheric inversion severity label from AQI value without nested ternaries.
+ * @param {number} aqi
+ * @returns {'Severe' | 'Moderate' | 'Low'}
+ */
+function getInversionSeverity(aqi) {
+  if (aqi > 250) return 'Severe';
+  if (aqi > 150) return 'Moderate';
+  return 'Low';
+}
+
+/**
  * Fetches live air quality from Open-Meteo free API.
  * @param {number} lat - Latitude
  * @param {number} lon - Longitude
@@ -52,7 +63,7 @@ export async function fetchLiveAirQuality(lat, lon) {
         aqi: slotAqi,
         temp: 18,
         safeVentilation: slotAqi <= 150 && isDaytimeDispersion,
-        inversion: slotAqi > 250 ? 'Severe' : slotAqi > 150 ? 'Moderate' : 'Low'
+        inversion: getInversionSeverity(slotAqi)
       });
     }
 
