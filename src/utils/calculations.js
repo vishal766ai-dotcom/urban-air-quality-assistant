@@ -6,7 +6,8 @@
 
 export {
   AQI_CATEGORIES,
-  getAqiCategory
+  getAqiCategory,
+  calculateWhoMultiple
 } from './aqiCalculations';
 
 export {

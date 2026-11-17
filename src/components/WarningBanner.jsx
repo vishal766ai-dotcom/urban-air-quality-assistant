@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Radio } from 'lucide-react';
-import { getAqiCategory, calculateAiringCountdown } from '../utils/calculations';
+import { getAqiCategory, calculateAiringCountdown, calculateWhoMultiple } from '../utils/calculations';
 import { InversionExplainerModal } from './InversionExplainerModal';
 import { SafeWindowCard } from './SafeWindowCard';
 
@@ -17,7 +17,7 @@ import { SafeWindowCard } from './SafeWindowCard';
 export function WarningBanner({ city, profile, isLiveSynced = false, isSimulated = false }) {
   const [showInversionModal, setShowInversionModal] = useState(false);
   const aqiCat = getAqiCategory(city.currentAQI);
-  const whoRatio = Math.max(0.2, (city.pollutants.pm25 / 15)).toFixed(1);
+  const whoRatio = calculateWhoMultiple(city.pollutants.pm25);
   
   const aqi = city.currentAQI;
   const isGood = aqi <= 50;

@@ -5,27 +5,38 @@
 
 /**
  * Calculates the minutes required for one complete air exchange in a room based on CADR.
+ * Includes complete division-by-zero protection for roomSize = 0 or CADR = 0, and handles negative inputs safely.
  * @param {number} roomSizeSqFt - Room floor surface area in square feet.
  * @param {number} cadrCfm - Clean Air Delivery Rate in Cubic Feet per Minute.
  * @param {number} [ceilingHeightFt=8.5] - Ceiling height in feet (defaults to 8.5ft).
- * @returns {number} Estimated minutes per complete air turnover.
+ * @returns {number} Estimated minutes per complete air turnover (or 0 for zero/invalid inputs).
  */
 export function calculateTurnoverMinutes(roomSizeSqFt, cadrCfm, ceilingHeightFt = 8.5) {
-  const sqFt = Math.max(50, Number(roomSizeSqFt) || 300);
-  const cadr = Math.max(50, Number(cadrCfm) || 200);
-  const roomVolumeCuFt = sqFt * ceilingHeightFt;
+  const numericSqFt = Number(roomSizeSqFt);
+  const numericCadr = Number(cadrCfm);
+
+  // Safe boundary and division-by-zero protection
+  if (isNaN(numericSqFt) || numericSqFt <= 0) return 0;
+  if (isNaN(numericCadr) || numericCadr <= 0) return 0;
+
+  const sqFt = Math.max(1, numericSqFt);
+  const cadr = Math.max(1, numericCadr);
+  const height = Math.max(1, Number(ceilingHeightFt) || 8.5);
+  const roomVolumeCuFt = sqFt * height;
   return Math.max(3, Math.round(roomVolumeCuFt / cadr));
 }
 
 /**
  * Computes Air Changes per Hour (ACH) for clinical and indoor air quality standards.
+ * Guaranteed division-by-zero protection against zero CADR or zero room size.
  * @param {number} roomSizeSqFt - Room floor surface area in square feet.
  * @param {number} cadrCfm - Clean Air Delivery Rate in Cubic Feet per Minute.
  * @param {number} [ceilingHeightFt=8.5] - Ceiling height in feet.
- * @returns {number} Decimal Air Changes per Hour (e.g., 5.2 ACH).
+ * @returns {number} Decimal Air Changes per Hour (e.g., 5.2 ACH, or 0 for zero inputs).
  */
 export function calculateAirChangesPerHour(roomSizeSqFt, cadrCfm, ceilingHeightFt = 8.5) {
   const turnoverMinutes = calculateTurnoverMinutes(roomSizeSqFt, cadrCfm, ceilingHeightFt);
+  if (turnoverMinutes <= 0) return 0;
   return Number((60 / turnoverMinutes).toFixed(1));
 }
 

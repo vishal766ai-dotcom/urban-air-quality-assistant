@@ -90,3 +90,15 @@ export function getAqiCategory(aqi) {
   if (numericAqi <= 300) return AQI_CATEGORIES.veryUnhealthy;
   return AQI_CATEGORIES.hazardous;
 }
+
+/**
+ * Calculates the multiple of the WHO 24-hour safe guideline limit for PM2.5 (15 µg/m³).
+ * Handles edge cases including 0, negative values, NaN, and extreme values.
+ * @param {number} pm25 - Fine particulate concentration in µg/m³.
+ * @returns {number} Decimal multiple of WHO guideline (e.g. 25.5x).
+ */
+export function calculateWhoMultiple(pm25) {
+  const numeric = Number(pm25);
+  if (isNaN(numeric) || numeric <= 0) return 0.0;
+  return Number((numeric / 15).toFixed(1));
+}
