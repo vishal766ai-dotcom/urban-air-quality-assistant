@@ -88,7 +88,9 @@ export function AqiScenarioSimulator({
 
       {/* Slider Bar */}
       <div className="flex items-center gap-3">
-        <span className="text-xs text-slate-400 font-mono w-10">AQI 20</span>
+        <span className="text-xs text-slate-400 font-mono shrink-0 whitespace-nowrap">
+          MIN 20
+        </span>
         <input
           type="range"
           min="20"
@@ -96,8 +98,11 @@ export function AqiScenarioSimulator({
           value={activeValue}
           onChange={(e) => onSimulateAqi(Number(e.target.value))}
           className="flex-1 accent-emerald-500 cursor-pointer h-2 bg-slate-800 rounded-lg"
-          aria-label="Simulate Ambient AQI"
+          aria-label="Simulate Ambient AQI (Range 20 to 500)"
         />
+        <span className="text-xs text-slate-500 font-mono shrink-0 whitespace-nowrap hidden sm:inline">
+          MAX 500
+        </span>
         <div className="flex items-center gap-1.5 shrink-0 px-3 py-1 rounded-xl bg-slate-950 border border-slate-700">
           <Zap className="w-3.5 h-3.5 text-amber-400" />
           <span className="font-heading font-bold text-sm" style={{ color: cat.color }}>
