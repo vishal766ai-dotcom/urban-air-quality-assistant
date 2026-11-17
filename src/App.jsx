@@ -26,11 +26,14 @@ import { ImpactExplainer } from './components/ImpactExplainer';
 import { CommunitySmogShield } from './components/CommunitySmogShield';
 import { EvaluationModal } from './components/EvaluationModal';
 import { ApiKeyModal } from './components/ApiKeyModal';
+import { CustomLocationModal } from './components/CustomLocationModal';
+import { SymptomTriageModal } from './components/SymptomTriageModal';
 
 const getFallbackKey = () => (typeof atob !== 'undefined' ? atob('QVEuQWI4Uk42SWVzSy0wei1XalhXblR4SXAzVU9LRlM0TU5YdUpVMDN1Nkt4QU4tWlpFRXc=') : '');
 export const PERMANENT_API_KEY = (import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) || getFallbackKey();
 
 export function App() {
+  const [citiesList, setCitiesList] = useState(CITIES_DATA);
   const [selectedCity, setSelectedCity] = useState(CITIES_DATA[0]); // Delhi NCR
   const [selectedProfile, setSelectedProfile] = useState(LIFESTYLE_PROFILES[0]); // Family with young kids
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -39,9 +42,16 @@ export function App() {
   const [apiKey, setApiKey] = useLocalStorage('aeroguardian_gemini_key', PERMANENT_API_KEY);
   const [evalModalOpen, setEvalModalOpen] = useState(false);
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
+  const [customLocationModalOpen, setCustomLocationModalOpen] = useState(false);
+  const [triageModalOpen, setTriageModalOpen] = useState(false);
 
   const [highContrast, setHighContrast] = useState(false);
   const [largeFont, setLargeFont] = useState(false);
+
+  const handleAddCustomCity = (newCity) => {
+    setCitiesList(prev => [newCity, ...prev]);
+    setSelectedCity(newCity);
+  };
 
   // Shortened tab labels for seamless fit on all laptop & tablet displays without horizontal overflow
   const tabs = [
@@ -60,10 +70,13 @@ export function App() {
       <Navbar
         selectedCity={selectedCity}
         onSelectCity={setSelectedCity}
+        citiesList={citiesList}
+        onOpenCustomCityModal={() => setCustomLocationModalOpen(true)}
         selectedProfile={selectedProfile}
         onSelectProfile={setSelectedProfile}
         onOpenApiKeyModal={() => setApiKeyModalOpen(true)}
         onOpenEvalModal={() => setEvalModalOpen(true)}
+        onOpenTriageModal={() => setTriageModalOpen(true)}
         apiKey={apiKey}
         highContrast={highContrast}
         onToggleHighContrast={() => setHighContrast(!highContrast)}
@@ -191,6 +204,19 @@ export function App() {
         onClose={() => setApiKeyModalOpen(false)}
         apiKey={apiKey}
         onSaveApiKey={setApiKey}
+      />
+
+      <CustomLocationModal
+        isOpen={customLocationModalOpen}
+        onClose={() => setCustomLocationModalOpen(false)}
+        onAddCity={handleAddCustomCity}
+      />
+
+      <SymptomTriageModal
+        isOpen={triageModalOpen}
+        onClose={() => setTriageModalOpen(false)}
+        city={selectedCity}
+        profile={selectedProfile}
       />
 
     </div>

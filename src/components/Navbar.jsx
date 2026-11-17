@@ -10,7 +10,9 @@ import {
   MapPin, 
   Users, 
   Award,
-  ChevronDown
+  ChevronDown,
+  PlusCircle,
+  HeartPulse
 } from 'lucide-react';
 import { CITIES_DATA, getAqiCategory } from '../data/citiesData';
 import { LIFESTYLE_PROFILES } from '../data/routineOptions';
@@ -18,10 +20,13 @@ import { LIFESTYLE_PROFILES } from '../data/routineOptions';
 export function Navbar({
   selectedCity,
   onSelectCity,
+  citiesList = CITIES_DATA,
+  onOpenCustomCityModal,
   selectedProfile,
   onSelectProfile,
   onOpenApiKeyModal,
   onOpenEvalModal,
+  onOpenTriageModal,
   apiKey,
   highContrast,
   onToggleHighContrast,
@@ -106,12 +111,12 @@ export function Navbar({
               </button>
 
               {cityDropdownOpen && (
-                <div className="absolute left-0 mt-2 w-64 rounded-xl bg-slate-800 border border-slate-700 shadow-2xl p-2 z-50 animate-fade-in">
+                <div className="absolute left-0 mt-2 w-72 rounded-xl bg-slate-800 border border-slate-700 shadow-2xl p-2 z-50 animate-fade-in">
                   <div className="px-2 py-1 text-xs font-semibold uppercase text-slate-400 tracking-wider">
                     Select Smog Hotspot
                   </div>
                   <div className="max-h-60 overflow-y-auto space-y-1">
-                    {CITIES_DATA.map((city) => {
+                    {citiesList.map((city) => {
                       const cat = getAqiCategory(city.currentAQI);
                       return (
                         <button
@@ -136,6 +141,20 @@ export function Navbar({
                         </button>
                       );
                     })}
+                  </div>
+
+                  {/* Add Custom Location Trigger */}
+                  <div className="pt-2 mt-1 border-t border-slate-700">
+                    <button
+                      onClick={() => {
+                        setCityDropdownOpen(false);
+                        onOpenCustomCityModal();
+                      }}
+                      className="w-full py-1.5 px-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" />
+                      <span>+ Add Custom Location / Local AQI</span>
+                    </button>
                   </div>
                 </div>
               )}
@@ -184,7 +203,7 @@ export function Navbar({
             </div>
           </div>
 
-          {/* Action Buttons: Evaluator Verification, API Key, Accessibility */}
+          {/* Action Buttons: Evaluator Verification, API Key, Health Triage, Accessibility */}
           <div className="flex items-center gap-2">
             {/* PromptWars Evaluation & Diagnostics Runner */}
             <button
@@ -195,6 +214,16 @@ export function Navbar({
               <Award className="w-4 h-4" />
               <span className="hidden sm:inline">Evaluation Rubric & Tests</span>
               <span className="sm:hidden">Tests</span>
+            </button>
+
+            {/* Smog Health & Respiratory Triage Button */}
+            <button
+              onClick={onOpenTriageModal}
+              title="Smog Health & Respiratory Triage Guide"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-rose-950/60 border border-rose-500/40 text-rose-300 hover:bg-rose-900/60 text-xs font-medium transition"
+            >
+              <HeartPulse className="w-3.5 h-3.5" />
+              <span className="hidden xl:inline">Health Triage</span>
             </button>
 
             {/* Gemini API Key Button */}

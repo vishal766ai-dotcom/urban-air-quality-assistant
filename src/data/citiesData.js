@@ -300,3 +300,61 @@ export function getAqiCategory(aqi) {
   if (aqi <= 300) return AQI_CATEGORIES.veryUnhealthy;
   return AQI_CATEGORIES.hazardous;
 }
+
+export function createCustomCity({ name, country = 'Local Zone', aqi = 250, currencyCode = 'INR' }) {
+  const numAqi = Math.max(1, Math.min(999, Number(aqi) || 250));
+  const cat = getAqiCategory(numAqi);
+  const approxPm25 = Number((numAqi * 0.92).toFixed(1));
+
+  const currencies = {
+    INR: { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
+    USD: { code: 'USD', symbol: '$', name: 'US Dollar' },
+    PKR: { code: 'PKR', symbol: 'Rs', name: 'Pakistani Rupee' },
+    EUR: { code: 'EUR', symbol: '€', name: 'Euro' },
+    GBP: { code: 'GBP', symbol: '£', name: 'British Pound' },
+    CNY: { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' }
+  };
+
+  return {
+    id: `custom-${Date.now()}`,
+    name: name.trim() || 'My Neighborhood',
+    country: country.trim() || 'Custom Location',
+    region: 'User Configured',
+    currency: currencies[currencyCode] || currencies.INR,
+    currentAQI: numAqi,
+    category: cat.label,
+    color: cat.color,
+    weather: {
+      temp: 15,
+      condition: numAqi > 200 ? 'Winter Smog Inversion' : 'Moderate Urban Haze',
+      humidity: 82,
+      windSpeed: 2.8,
+      inversionStatus: numAqi > 200 ? 'Surface Boundary Trap Active' : 'Moderate Dispersal',
+      inversionRisk: numAqi > 200 ? 'High' : 'Moderate'
+    },
+    pollutants: {
+      pm25: approxPm25,
+      pm10: Number((approxPm25 * 1.4).toFixed(1)),
+      no2: 65.0,
+      so2: 18.0,
+      co: 3.2,
+      o3: 32.0
+    },
+    sources: [
+      { name: 'Vehicular & Transit Emissions', pct: 42 },
+      { name: 'Biomass & Domestic Burning', pct: 28 },
+      { name: 'Road Dust & Construction', pct: 18 },
+      { name: 'Industrial & Power Boilers', pct: 12 }
+    ],
+    hourlyForecast: [
+      { hour: '00:00', aqi: Math.round(numAqi * 1.02), temp: 13, safeVentilation: false, inversion: 'High' },
+      { hour: '06:00', aqi: Math.round(numAqi * 1.15), temp: 11, safeVentilation: false, inversion: 'Peak Trap' },
+      { hour: '09:00', aqi: Math.round(numAqi * 1.08), temp: 14, safeVentilation: false, inversion: 'Severe' },
+      { hour: '12:00', aqi: Math.round(numAqi * 0.85), temp: 18, safeVentilation: false, inversion: 'Moderate' },
+      { hour: '14:00', aqi: Math.round(numAqi * 0.70), temp: 20, safeVentilation: true, inversion: 'Low Dispersion' },
+      { hour: '18:00', aqi: Math.round(numAqi * 0.95), temp: 16, safeVentilation: false, inversion: 'High' },
+      { hour: '21:00', aqi: Math.round(numAqi * 1.05), temp: 14, safeVentilation: false, inversion: 'Critical' }
+    ],
+    advisory: `Custom Air Quality Profile: Maintain continuous indoor air filtration. Utilize the 1:00 PM – 3:30 PM solar window for essential errands.`
+  };
+}
